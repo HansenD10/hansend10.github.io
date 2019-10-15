@@ -1,17 +1,20 @@
 <html>
-  <head>
+
+<head>
     <meta charset="utf-8">
     <title>Category</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.30.1/skin-win8-n/ui.fancytree.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.30.1/skin-win8-n/ui.fancytree.min.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.fancytree/2.30.1/jquery.fancytree.min.js"></script>
     <script src="https://cloud.squidex.io/scripts/editor-sdk.js"></script>
-  </head>
+</head>
 
-  <body style="margin: 0px; padding: 0px;">
+<body style="margin: 0px; padding: 0px;">
     <div>
-        <div id="Category"><ul class="ui-fancytree fancytree-container fancytree-plain" tabindex="0" role="tree" aria-multiselectable="true"><li role="treeitem" aria-expanded="false" aria-selected="false"><span class="fancytree-node fancytree-folder fancytree-has-children fancytree-exp-c fancytree-ico-cf"><span role="button" class="fancytree-expander"></span><span role="checkbox" class="fancytree-checkbox"></span><span role="presentation" class="fancytree-icon"></span><span class="fancytree-title">laptops-and-netbooks</span></span></li><li role="treeitem" aria-expanded="false" aria-selected="false"><span class="fancytree-node fancytree-folder fancytree-has-children fancytree-exp-c fancytree-ico-cf"><span role="button" class="fancytree-expander"></span><span role="checkbox" class="fancytree-checkbox"></span><span role="presentation" class="fancytree-icon"></span><span class="fancytree-title">tablets</span></span></li><li role="treeitem" aria-expanded="false" aria-selected="false"><span class="fancytree-node fancytree-folder fancytree-has-children fancytree-exp-c fancytree-ico-cf"><span role="button" class="fancytree-expander"></span><span role="checkbox" class="fancytree-checkbox"></span><span role="presentation" class="fancytree-icon"></span><span class="fancytree-title">servers</span></span></li><li role="treeitem" aria-expanded="false" aria-selected="false"><span class="fancytree-node fancytree-folder fancytree-has-children fancytree-exp-c fancytree-ico-cf"><span role="button" class="fancytree-expander"></span><span role="checkbox" class="fancytree-checkbox"></span><span role="presentation" class="fancytree-icon"></span><span class="fancytree-title">desktops-and-all-in-ones</span></span></li><li role="treeitem" aria-expanded="false" aria-selected="false" class="fancytree-lastsib"><span class="fancytree-node fancytree-folder fancytree-has-children fancytree-lastsib fancytree-exp-cl fancytree-ico-cf"><span role="button" class="fancytree-expander"></span><span role="checkbox" class="fancytree-checkbox"></span><span role="presentation" class="fancytree-icon"></span><span class="fancytree-title">phones</span></span></li></ul></div>
+        <div id="Category">
+        </div>
     </div>
     <script type="text/javascript">
         $(function () {
@@ -25,26 +28,28 @@
                     return n = n.split("="), this[n[0]] = n[1], this;
                 }.bind({}))[0];
             }
-            
+
             var control = $("#Category").fancytree({
                 checkbox: true,
-                selectMode: 3,
+                selectMode: 2,
                 source: [],
+                icon: false,
                 select: function (event, data) {
                     if (data.targetType !== "checkbox")
                         return;
                     var ls = data.tree.getSelectedNodes(true).map(x => x.key);
+                    console.log(ls);
                     field.valueChanged(ls);
                 }
             });
             function initSource(callback) {
-                function initNode(ls, value, folder, key) {
-                    let obj = ls.find(x => x.title === value);
+                function initNode(ls, title, folder, key) {
+                    let obj = ls.find(x => x.title === title);
                     if (!obj) {
                         obj = {
-                            title: value,
-                            key: `/${key}/`,
-                            folder: folder
+                            title,
+                            key,
+                            folder
                         };
                         if (folder) {
                             obj.children = [];
@@ -61,11 +66,12 @@
                 function ajaxCallback(data) {
                     var source = [];
                     $.each(data, function (i, value) {
-                        let ls = (value || "").split('/').filter(x => x);
+                        let ls = (value || "").split('\\').filter(x => x);
                         let children = source;
                         $.each(ls, function (n, value) {
-                            var key = ls.slice(0, n + 1).join('/');
+                            var key = ls.slice(0, n + 1).pop();
                             children = initNode(children, value, (n + 1) < ls.length, key);
+                            console.log(key);
                         });
                     });
                     callback(source);
@@ -93,5 +99,6 @@
             });
         });
     </script>
-  </body>
+</body>
+
 </html>
