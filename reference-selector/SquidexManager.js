@@ -6,12 +6,15 @@ export default class SquidexManager {
 
   init() {
     return new Promise(async (resolved, rejected) => {
+      // Get Squidex auth token
       await this.getAuthToken()
         .then(res => res.json())
         .then(res => this.authToken = res);
 
+      // Timeout for new token
       this.getNewAuthToken();
 
+      // Get Schemas
       await this.getSchemas()
         .then(res => res.json())
         .then(res => {
