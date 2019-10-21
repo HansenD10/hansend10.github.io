@@ -8,7 +8,7 @@ var options = (() => {
     return Object.assign(params, {[key]: decodeURIComponent(val)});
   }, {})
 })();
-if (Object.keys(options).length === 3) {
+if (Object.keys(options).length >= 1) {
   var uiManager = new UIManager(options);
 } else {
   console.error("Supplied the wrong number of params");

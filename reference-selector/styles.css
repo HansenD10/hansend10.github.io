@@ -1,4 +1,12 @@
+body {
+  height: 500px;
+}
+
+#squidex-form {
+  height: 100%;
+}
+
 #item-preview {
-  height: 100px;
+  height: 100%;
   overflow-y: auto;
 }

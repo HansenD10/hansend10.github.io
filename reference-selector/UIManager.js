@@ -2,89 +2,89 @@ import SquidexManager from "./SquidexManager.js";
 
 export default class UIManager {
   constructor(options) {
-    // DOM Elements
-    this.schemaSelector = document.getElementById('schema-selector');
-    this.itemSelector = document.getElementById('item-selector');
-    this.itemPreview = document.getElementById('item-preview');
-
-    
-    // Initialize Squidex Manager
-    this.squidexManager = new SquidexManager(options)
-    this.squidexManager.init()
-      .then(res => this.init());
+    this.options = options;
+    this.formData = { codename: "", id: "" };
+    this.data = { schemas: [], items: [] };
+    this.form = new SquidexFormField();
+    this.form.onInit(this.initializeSquidexManager.bind(this));
   }
 
-  init() {
-    // Squidex Field 
-    this.squidexField = new SquidexFormField();
-    this.initialVal = this.squidexField.getValue();
-    this.squidexField.onValueChanged(this.squidexValueChanged.bind(this));
+  async initializeSquidexManager(ctx) {
+    let { access_token, token_type } = ctx.user.user;
+    this.options.accessToken = access_token;
+    this.options.tokenType = token_type;
 
-    // Add event listeners for changes
-    this.schemaSelector.addEventListener('change', this.setSchemaItems.bind(this));
-    this.itemSelector.addEventListener('change', this.setItemsPreview.bind(this));
-    
-    // Populate schemas options
-    this.setSchemas(this.squidexManager.schemas);
+    this.squidexManager = new SquidexManager(this.options);
+    this.data.schemas = await this.squidexManager.getSchemas();
+    this.buildSchemas();
+    this.form.onValueChanged(val => this.squidexValueChanged(val));
+    document.getElementById('schema-selector')
+      .addEventListener('change', this.updateValue.bind(this, true))
+    document.getElementById('item-selector')
+      .addEventListener('change', this.updateValue.bind(this, false));
   }
 
-  squidexValueChanged(value) {
-    if (value && value.codename !== this.schemaSelector.value ) {
-      this.schemaSelector.value = value.codename;
-      this.setSchemaItems();
+  updateValue(isSchema, e) {
+    let val = { 
+      codename: isSchema ? e.target.value : this.formData.codename,
+      id: isSchema ? '' : e.target.value
     }
-    if (value && value.id !== this.itemSelector.value ) {
-      this.itemSelector.value = value.id;
-      this.setItemsPreview();
+
+    this.form.valueChanged(val);
+    this.squidexValueChanged(val);
+  }
+
+  async squidexValueChanged(val) {
+    if (val.codename && this.formData.codename !== val.codename) { 
+      this.data.items = await this.squidexManager.getItemsBySchema(val.codename);
+      document.getElementById('schema-selector')
+        .querySelectorAll('option').forEach(item => item.selected = item.value === val.codename);
+      this.buildItems(val.id);
     }
+    this.buildItemPreview(val.id);
+    this.formData = val;
   }
 
-  setItemsPreview() {
-    // Remove old content
-    this.itemPreview.querySelectorAll('li').forEach(item => item.remove());
+  buildItemPreview(selectedId) {
+    let itemPreview = document.getElementById('item-preview')
+    itemPreview.querySelectorAll('li').forEach(item => item.remove());
 
-    // Pass new selected schema to Squidex Field
-    this.squidexField.valueChanged({ codename: this.schemaSelector.value, id: this.itemSelector.value });
+    if (!selectedId) return;
 
-    // Display all string content
-    this.squidexManager.schemaItems.forEach(item => {
-      let { data } = item;
-      Object.keys(data).forEach(prop => {
-        if (!(data[prop].iv instanceof Array) && data[prop].iv) {
-          this.itemPreview.insertAdjacentHTML('beforeend', `<li><b>${prop}</b>: ${data[prop].iv}</li>`);
-        }
-      })
-    })
+    let selectedItem = this.data.items.filter(x => x.id === selectedId)[0];
+
+    let { data } = selectedItem;
+    Object.keys(data).forEach(key => {
+      if (!(data[key].iv instanceof Array) && data[key].iv)
+        itemPreview.insertAdjacentHTML('beforeend', `<li><b>${key}</b>: ${data[key].iv}</li>`);
+    });
   }
 
-  setSchemaItems() {
-    //Remove old items
-    this.itemSelector.querySelectorAll('option').forEach(item => {
+  buildItems(id) {
+    let itemSelector = document.getElementById('item-selector');
+
+    itemSelector.querySelectorAll('option').forEach(item => {
       item.getAttribute('value') && item.remove();
     })
 
-    // Pass new selected schema to Squidex Field
-    this.squidexField.valueChanged({ codename: this.schemaSelector.value, id: this.itemSelector.value });
-
-    // Populate all available items
-    this.squidexManager.getItemsBySchema(this.schemaSelector.value)
-      .then(res => {
-        console.log('Adding options')
-        res.forEach(item => {
-          let opt = document.createElement('option');
-          opt.appendChild(document.createTextNode(item.id));
-          opt.value = item.id;
-          this.itemSelector.appendChild(opt);
-        })
-      });
-  }
-
-  setSchemas(schemas) {
-    schemas.forEach(item => { 
+    this.data.items.forEach(item => {
       let opt = document.createElement('option');
-      opt.appendChild(document.createTextNode(item.label ? item.label : item.codename));
-      opt.value = item.codename;
-      this.schemaSelector.appendChild(opt);
+      opt.label = item.id;
+      opt.value = item.id;
+      opt.selected = item.id === id;
+      itemSelector.appendChild(opt);
     })
   }
+
+  buildSchemas() {
+    let schemaSelector = document.getElementById('schema-selector');
+    
+    this.data.schemas.forEach(item => {
+      let opt = document.createElement('option');
+      opt.label = item.label ? item.label : item.codename;
+      opt.value = item.codename;
+      schemaSelector.appendChild(opt);
+    })
+  }
+
 }
