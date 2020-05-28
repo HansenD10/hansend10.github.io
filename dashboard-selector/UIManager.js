@@ -32,6 +32,11 @@ export default class UIManager {
 
   buildDashboardsOptions() {
     let dashboardSelector = document.getElementById('dashboard-selector');
+    console.log("Before Filter FormData:", this.formData);
+    this.formData.dashboards = this.data
+      .filter(dashboard => this.formData.dashboards.indexOf(dashboard.id) !== -1)
+      .map(dashboard => dashboard.id);
+    console.log("After Filter FormData:", this.formData);
     this.data.forEach(item => {
       let checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
