@@ -16,17 +16,17 @@ export default class UIManager {
       this.data = await this.squidexManager.getDashboards(accessToken);
       this.buildDashboardsOptions();
       document.getElementById('dashboard-selector')
-        .addEventListener('change', (e) => this.updateValue(e));    
+        .addEventListener('change', (e) => this.updateValue(e));
     })
     this.form.valueChanged(this.formData);
   }
 
   updateValue(e) {
-    let hasVal = this.formData.dashboards.findIndex(s => s == e.target.value) !== -1;
+    let hasVal = this.formData.dashboards.findIndex(s => s.id == e.target.value) !== -1;
 
-    if (hasVal) this.formData.dashboards = this.formData.dashboards.filter(x => x !== e.target.value)
-    else this.formData.dashboards.push(e.target.value);
-    
+    if (hasVal) this.formData.dashboards = this.formData.dashboards.filter(x => x.id !== e.target.value)
+    else this.formData.dashboards.push({ id: e.target.value, name: e.target.id });
+
     this.form.valueChanged(this.formData);
   }
 
@@ -34,8 +34,8 @@ export default class UIManager {
     let dashboardSelector = document.getElementById('dashboard-selector');
     console.log("Before Filter FormData:", this.formData);
     this.formData.dashboards = this.data
-      .filter(dashboard => this.formData.dashboards.indexOf(dashboard.id) !== -1)
-      .map(dashboard => dashboard.id);
+      .filter(dashboard => this.formData.dashboards.findIndex(fd => fd.id === dashboard.id) !== -1)
+      .map(dashboard => ({ id: dashboard.id, name: dashboard.name }));
     console.log("After Filter FormData:", this.formData);
     this.data.forEach(item => {
       let checkbox = document.createElement('input');
@@ -44,7 +44,7 @@ export default class UIManager {
       checkbox.value = item.id;
       checkbox.id = item.name;
 
-      checkbox.checked = this.formData.dashboards.findIndex(v => v === item.id) !== -1;
+      checkbox.checked = this.formData.dashboards.findIndex(v => v.id === item.id) !== -1;
 
       let label = document.createElement('label');
       label.htmlFor = item.name;
