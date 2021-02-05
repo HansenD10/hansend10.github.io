@@ -9,8 +9,10 @@ export default class UIManager {
   }
 
   async initializeSquidexManager(ctx) {
-    let initialVal = ctx.initialContent ? ctx.initialContent.data.dashboards.iv : null;
-    this.formData = initialVal ? initialVal : { dashboards: [], defaultDashboard: '' };
+    this.formData = {
+      dashboards: ctx.initialContent?.data.dashboards ?? [],
+      defaultDashboard: ctx.initialContent.data.defaultDashboard ?? '',
+    };
     this.squidexManager = new SquidexManager(this.options);
     this.squidexManager.getAuthToken().then(async (accessToken) => {
       this.data = await this.squidexManager.getDashboards(accessToken);
@@ -51,6 +53,13 @@ export default class UIManager {
       label.appendChild(checkbox);
       label.appendChild(document.createElement('span'));
       label.appendChild(document.createTextNode(item.name));
+
+      if (!this.formData.defaultDashboard) {
+        let setDefaultDashBtn = document.createElement('button');
+        setDefaultDashBtn.innerText = 'Make Default Dashboard';
+        setDefaultDashBtn.type = 'button';
+        label.appendChild(setDefaultDashBtn);
+      }
 
       dashboardSelector.appendChild(label);
     });
