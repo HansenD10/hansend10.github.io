@@ -13,9 +13,11 @@ export default class UIManager {
       dashboards: ctx.initialContent?.data.dashboards ?? [],
       defaultDashboard: ctx.initialContent.data.defaultDashboard ?? '',
     };
+    console.log(this.formData);
     this.squidexManager = new SquidexManager(this.options);
     this.squidexManager.getAuthToken().then(async (accessToken) => {
       this.data = await this.squidexManager.getDashboards(accessToken);
+      console.log(this.data);
       this.buildDashboardsOptions();
       document.getElementById('dashboard-selector')
         .addEventListener('change', (e) => this.updateValue(e));
