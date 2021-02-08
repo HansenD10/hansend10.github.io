@@ -10,8 +10,8 @@ export default class UIManager {
 
   async initializeSquidexManager(ctx) {
     this.formData = {
-      dashboards: ctx.initialContent?.data.dashboards ?? [],
-      defaultDashboard: ctx.initialContent.data.defaultDashboard ?? '',
+      dashboards: ctx.initialContent?.data?.dashboards ?? [],
+      defaultDashboard: ctx.initialContent?.data?.defaultDashboard ?? '',
     };
     console.log(this.formData);
     this.squidexManager = new SquidexManager(this.options);
