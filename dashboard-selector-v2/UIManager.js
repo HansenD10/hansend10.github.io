@@ -56,7 +56,7 @@ export default class UIManager {
       label.appendChild(document.createElement('span'));
       label.appendChild(document.createTextNode(item.name));
 
-      if (!this.formData.defaultDashboard) {
+      if (!this.formData.defaultDashboard && checkbox.checked) {
         let setDefaultDashBtn = document.createElement('button');
         setDefaultDashBtn.innerText = 'Make Default Dashboard';
         setDefaultDashBtn.type = 'button';
